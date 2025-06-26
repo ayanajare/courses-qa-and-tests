@@ -1,0 +1,17 @@
+## Postgres Database
+use docker-compose to run a postgres database
+```bash
+docker-compose up
+```
+
+## set up 
+```bash 
+npm install
+```
+## Use test 
+```bash 
+npm run test
+```
+
+--> on est arrivé à l'Exercice 3 : Transferts
+https://slides.com/vm-it/qualite-logicielle-tests#/6/25 
