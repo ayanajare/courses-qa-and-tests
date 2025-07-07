@@ -1,26 +1,47 @@
 import { sql } from "../../../infrastructure/db";
 
-async function createAccountInRepository({ user_id, type, balance = 0 }) {
-    const account = await sql`
-        INSERT INTO account (user_id, type, balance)
-        VALUES (${user_id}, ${type},${balance})
-        RETURNING *;
+export async function createAccountInRepository({ userId, amount }) {
+  const accounts = await sql`
+    INSERT INTO accounts (userId, amount)
+    VALUES (${userId}, ${amount})
+    RETURNING *
     `;
-    return account[0];
+
+  return accounts[0];
 }
 
-async function getAccountInRepository({ user_id }) {
-    const account = await sql`
-        SELECT * FROM account
-        WHERE user_id = ${user_id}
+export async function getAccountsFromRepository(userId) {
+  const accounts = await sql`
+    SELECT * FROM accounts WHERE userId = ${userId}
     `;
-    return account[0];
+
+  return accounts;
 }
 
-async function deleteAccountInRepository({ user_id }) {
+export async function deleteAccountFromRepository(accountId, userId) {
+  const result = await sql`
+    DELETE FROM accounts WHERE id = ${accountId} AND userId = ${userId}
+    RETURNING *
+    `;
+
+  if (result.length === 0) {
+    throw new Error("Account not found or does not belong to the user");
+  }
+
+  return result[0];
+}
+
+export async function updateAccountInRepository(accountId, amountToAdd) {
+
     const result = await sql`
-        DELETE FROM account
-        WHERE user_id = ${user_id}
+    UPDATE accounts
+    SET amount = amount + ${amountToAdd}
+    WHERE id = ${accountId}
+    RETURNING *
     `;
-    return result;
+    if (result.length === 0) {
+        throw new Error("Account not found");
+    }
+    return result[0];
 }
+    

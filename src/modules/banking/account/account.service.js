@@ -1,37 +1,50 @@
-import {createAccountInRepository,getAccountInRepository, deleteAccountInRepository} from './account.repository.js';
+import { HttpBadRequest } from "@httpx/exception";
 import { z } from "zod";
-import { HttpBadRequest, HttpForbidden } from "@httpx/exception";
+import { createAccountInRepository, getAccountsFromRepository, deleteAccountFromRepository, updateAccountInRepository } from "./account.repository";
 
 const AccountSchema = z.object({
-    user_id:z.string().min(2)  , 
-    type:z.string(), 
-    balance: z.number().min(0).default(0) 
+  userId: z.number().int().positive(),
+  amount: z.number(),
 });
-
 
 export async function createAccount(data) {
   const result = AccountSchema.safeParse(data);
-  if (result.success) {
+    if (!result.success) {
+        console.log(result.error)
+        throw new HttpBadRequest("Invalid account data");
+    }
+
     return createAccountInRepository(result.data);
-  } else {
-    throw new HttpBadRequest(result.error);
-  }
 }
 
-export async function getAccount(user_id) {
-  const result = z.string().min(2).safeParse(user_id);
-  if (result.success) {
-    return getAccountInRepository(result.data);
-  } else {
-    throw new HttpBadRequest(result.error);
+export async function getAccounts(userId) {
+  if (!userId || typeof userId !== 'number') {
+    throw new HttpBadRequest("Invalid user ID");
   }
+  
+  return getAccountsFromRepository(userId);
 }
 
-export async function deleteAccount(user_id) {
-  const result = z.string().min(2).safeParse(user_id);
-  if (result.success) {
-    return deleteAccountInRepository(result.data);
-  } else {
-    throw new HttpBadRequest(result.error);
+export async function deleteAccount(accountId, userId) {
+  if (!accountId || typeof accountId !== 'number') {
+    throw new HttpBadRequest("Invalid account ID");
   }
+  
+  if (!userId || typeof userId !== 'number') {
+    throw new HttpBadRequest("Invalid user ID");
+  }
+
+  return deleteAccountFromRepository(accountId, userId);
+}
+
+export async function patchAccount(accountId, amount) {
+  if (!accountId || typeof accountId !== 'number') {
+    throw new HttpBadRequest("Invalid account ID");
+  }
+  
+  if (typeof amount !== 'number') {
+    throw new HttpBadRequest("Invalid amount");
+  }
+
+  return updateAccountInRepository(accountId, amount);
 }
